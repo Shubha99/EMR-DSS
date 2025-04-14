@@ -1,0 +1,221 @@
+#############################
+# Organizations
+#############################
+
+Organizations:
+  - &OrdererOrg
+    Name: OrdererOrg
+    ID: OrdererMSP
+    MSPDir: crypto-config/ordererOrganizations/orderer.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OrdererMSP.admin')"
+
+  - &HospitalOrg
+    Name: HospitalOrg
+    ID: HospitalMSP
+    MSPDir: crypto-config/peerOrganizations/hospital.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('HospitalMSP.admin','HospitalMSP.peer','HospitalMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('HospitalMSP.admin','HospitalMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('HospitalMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('HospitalMSP.peer')"
+    AnchorPeers:
+      - Host: peer0.hospital.com
+        Port: 7051
+
+  - &InsuranceCompanyOrg
+    Name: InsuranceCompanyOrg
+    ID: InsuranceCompanyMSP
+    MSPDir: crypto-config/peerOrganizations/insurancecompany.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('InsuranceCompanyMSP.admin','InsuranceCompanyMSP.peer','InsuranceCompanyMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('InsuranceCompanyMSP.admin','InsuranceCompanyMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('InsuranceCompanyMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('InsuranceCompanyMSP.peer')"
+    AnchorPeers:
+      - Host: peer0.insurancecompany.com
+        Port: 9051
+
+############################
+# Capabilities
+#############################
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+
+#############################
+# Application Defaults
+#############################
+
+Application: &ApplicationDefaults
+
+  Organizations:
+
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+
+#############################
+# Orderer Defaults
+#############################
+
+Orderer: &OrdererDefaults
+
+  OrdererType: etcdraft
+
+  EtcdRaft:
+    Consenters:
+      - Host: orderer1.orderer.com
+        Port: 7050
+        ClientTLSCert: crypto-config/ordererOrganizations/orderer.com/orderers/orderer1.orderer.com/tls/server.crt
+        ServerTLSCert: crypto-config/ordererOrganizations/orderer.com/orderers/orderer1.orderer.com/tls/server.crt
+      
+  Addresses:
+    - orderer1.orderer.com:7050
+  
+  BatchTimeout: 2s
+
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+
+  Organizations:
+
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+
+#############################
+# Channel Defaults
+#############################
+
+Channel: &ChannelDefaults
+
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  
+  Capabilities:
+    <<: *ChannelCapabilities
+
+
+#############################
+# Profiles
+#############################
+
+Profiles:
+
+  BasicChannel:
+    Consortium: SampleConsortium
+    <<: *ChannelDefaults
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *HospitalOrg
+        - *InsuranceCompanyOrg
+      Capabilities:
+        <<: *ApplicationCapabilities
+
+  OrdererGenesis:
+    <<: *ChannelDefaults
+    Capabilities:
+      <<: *ChannelCapabilities
+    Orderer:
+      <<: *OrdererDefaults
+      OrdererType: etcdraft
+      EtcdRaft:
+        Consenters:
+          - Host: orderer1.orderer.com
+            Port: 7050
+            ClientTLSCert: crypto-config/ordererOrganizations/orderer.com/orderers/orderer1.orderer.com/tls/server.crt
+            ServerTLSCert: crypto-config/ordererOrganizations/orderer.com/orderers/orderer1.orderer.com/tls/server.crt
+          - Host: orderer2.orderer.com
+            Port: 8050
+            ClientTLSCert: crypto-config/ordererOrganizations/orderer.com/orderers/orderer2.orderer.com/tls/server.crt
+            ServerTLSCert: crypto-config/ordererOrganizations/orderer.com/orderers/orderer2.orderer.com/tls/server.crt
+          - Host: orderer3.orderer.com
+            Port: 9050
+            ClientTLSCert: crypto-config/ordererOrganizations/orderer.com/orderers/orderer3.orderer.com/tls/server.crt
+            ServerTLSCert: crypto-config/ordererOrganizations/orderer.com/orderers/orderer3.orderer.com/tls/server.crt
+        
+      Addresses:
+        - orderer1.orderer.com:7050
+        - orderer2.orderer.com:8050
+        - orderer3.orderer.com:9050
+
+      Organizations:
+        - *OrdererOrg
+      
+      Capabilities:
+        <<: *OrdererCapabilities
+
+    Consortiums:
+      SampleConsortium:
+        Organizations:
+          - *HospitalOrg
+          - *InsuranceCompanyOrg

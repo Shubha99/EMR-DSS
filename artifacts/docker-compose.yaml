@@ -1,0 +1,251 @@
+# version: "2"
+
+networks:
+    test:
+
+services:
+
+    orderer1.orderer.com:
+        platform: linux/amd64
+        container_name: orderer1.orderer.com
+        extends:
+            file: base.yaml
+            service: orderer-base
+        environment:
+            -   ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:8443
+            -   ORDERER_GENERAL_LISTENPORT=7050
+        ports:
+            -   7050:7050
+            -   8443:8443
+        networks:
+            -   test
+        volumes:
+            -   ./channel/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+            -   ./channel/crypto-config/ordererOrganizations/orderer.com/orderers/orderer1.orderer.com/msp:/var/hyperledger/orderer/msp
+            -   ./channel/crypto-config/ordererOrganizations/orderer.com/orderers/orderer1.orderer.com/tls:/var/hyperledger/orderer/tls
+            -   /var/vikas/car-lifecycle/orderer:/var/hyperledger/production
+
+    orderer2.orderer.com:
+        platform: linux/amd64
+        container_name: orderer2.orderer.com
+        extends:
+            file: base.yaml
+            service: orderer-base
+        environment:
+            -   ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:8443
+            -   ORDERER_GENERAL_LISTENPORT=8050
+        ports:
+            -   8050:8050
+            -   8444:8443
+        networks:
+            -   test
+        volumes:
+            -   ./channel/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+            -   ./channel/crypto-config/ordererOrganizations/orderer.com/orderers/orderer2.orderer.com/msp:/var/hyperledger/orderer/msp
+            -   ./channel/crypto-config/ordererOrganizations/orderer.com/orderers/orderer2.orderer.com/tls:/var/hyperledger/orderer/tls
+            -   /var/vikas/car-lifecycle/orderer2:/var/hyperledger/production
+
+    orderer3.orderer.com:
+        platform: linux/amd64
+        container_name: orderer3.orderer.com
+        extends:
+            file: base.yaml
+            service: orderer-base
+        environment:
+            -   ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:8443
+            -   ORDERER_GENERAL_LISTENPORT=9050
+        ports:
+            -   9050:9050
+            -   8445:8443
+        networks:
+            -   test
+        volumes:
+            -   ./channel/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+            -   ./channel/crypto-config/ordererOrganizations/orderer.com/orderers/orderer3.orderer.com/msp:/var/hyperledger/orderer/msp
+            -   ./channel/crypto-config/ordererOrganizations/orderer.com/orderers/orderer3.orderer.com/tls:/var/hyperledger/orderer/tls
+            -   /var/vikas/car-lifecycle/orderer3:/var/hyperledger/production
+
+    couchdb1:
+        platform: linux/amd64
+        container_name: couchdb1
+        image: hyperledger/fabric-couchdb
+        environment:
+            -   COUCHDB_USER=
+            -   COUCHDB_PASSWORD=
+        ports:
+            -   5984:5984
+        networks:
+            -    test
+
+    couchdb2:
+        platform: linux/amd64
+        container_name: couchdb2
+        image: hyperledger/fabric-couchdb
+        environment:
+            -   COUCHDB_USER=
+            -   COUCHDB_PASSWORD=
+        ports:
+            -   6984:5984
+        networks:
+            -    test    
+
+    couchdb3:
+        platform: linux/amd64
+        container_name: couchdb3
+        image: hyperledger/fabric-couchdb
+        environment:
+            -   COUCHDB_USER=
+            -   COUCHDB_PASSWORD=
+        ports:
+            -   7984:5984
+        networks:
+            -    test    
+
+    couchdb4:
+        platform: linux/amd64
+        container_name: couchdb4
+        image: hyperledger/fabric-couchdb
+        environment:
+            -   COUCHDB_USER=
+            -   COUCHDB_PASSWORD=
+        ports:
+            -   8984:5984
+        networks:
+            -    test
+
+
+    peer0.hospital.com:
+        platform: linux/amd64
+        container_name: peer0.hospital.com
+        extends:
+            file: base.yaml
+            service: peer-base
+        environment:
+            -   CORE_PEER_LOCALMSPID=HospitalMSP
+            -   CORE_PEER_ID=peer0.hospital.com
+            -   CORE_PEER_ADDRESS=peer0.hospital.com:7051
+            -   CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+            -   CORE_PEER_CHAINCODEADDRESS=peer0.hospital.com:7052
+            -   CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+            -   CORE_PEER_GOSSIP_BOOTSTRAP=peer0.hospital.com:8051
+            -   CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.hospital.com:7051
+            -   CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+        depends_on:
+            -   couchdb1
+        ports:
+            -   7051:7051
+        volumes:
+            -   ./channel/crypto-config/peerOrganizations/hospital.com/peers/peer0.hospital.com/msp:/etc/hyperledger/crypto/peer/msp    
+            -   ./channel/crypto-config/peerOrganizations/hospital.com/peers/peer0.hospital.com/tls:/etc/hyperledger/crypto/peer/tls
+            -   ./channel/:/etc/hyperledger/channel/
+            -   /var/vikas/car-lifecycle/peer0-manufacturer:/var/hyperledger/production
+        networks:
+            -   test
+
+
+    peer1.hospital.com:
+        platform: linux/amd64
+        container_name: peer1.hospital.com
+        extends:
+            file: base.yaml
+            service: peer-base
+        environment:
+            -   CORE_PEER_LOCALMSPID=HospitalMSP
+            -   CORE_PEER_ID=peer1.hospital.com
+            -   CORE_PEER_ADDRESS=peer1.hospital.com:8051
+            -   CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+            -   CORE_PEER_CHAINCODEADDRESS=peer1.hospital.com:8052
+            -   CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+            -   CORE_PEER_GOSSIP_BOOTSTRAP=peer1.hospital.com:7051
+            -   CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.hospital.com:8051
+            -   CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+        depends_on:
+            -   couchdb2
+        ports:
+            -   8051:8051
+        volumes:
+            -   ./channel/crypto-config/peerOrganizations/hospital.com/peers/peer1.hospital.com/msp:/etc/hyperledger/crypto/peer/msp    
+            -   ./channel/crypto-config/peerOrganizations/hospital.com/peers/peer1.hospital.com/tls:/etc/hyperledger/crypto/peer/tls
+            -   ./channel/:/etc/hyperledger/channel/
+            -   /var/vikas/car-lifecycle/peer1-manufacturer:/var/hyperledger/production
+        networks:
+            -   test
+
+
+
+    peer0.insurancecompany.com:
+        platform: linux/amd64
+        container_name: peer0.insurancecompany.com
+        extends:
+            file: base.yaml
+            service: peer-base
+        environment:
+            -   CORE_PEER_LOCALMSPID=InsuranceCompanyMSP
+            -   CORE_PEER_ID=peer0.insurancecompany.com
+            -   CORE_PEER_ADDRESS=peer0.insurancecompany.com:9051
+            -   CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+            -   CORE_PEER_CHAINCODEADDRESS=peer0.insurancecompany.com:9052
+            -   CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+            -   CORE_PEER_GOSSIP_BOOTSTRAP=peer0.insurancecompany.com:10051
+            -   CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.insurancecompany.com:9051
+            -   CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb3:5984
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+        depends_on:
+            -   couchdb3
+        ports:
+            -   9051:9051
+        volumes:
+            -   ./channel/crypto-config/peerOrganizations/insurancecompany.com/peers/peer0.insurancecompany.com/msp:/etc/hyperledger/crypto/peer/msp    
+            -   ./channel/crypto-config/peerOrganizations/insurancecompany.com/peers/peer0.insurancecompany.com/tls:/etc/hyperledger/crypto/peer/tls
+            -   ./channel/:/etc/hyperledger/channel/
+            -   /var/vikas/car-lifecycle/peer0-dealer:/var/hyperledger/production
+        networks:
+            -   test
+
+
+    peer1.insurancecompany.com:
+        platform: linux/amd64
+        container_name: peer1.insurancecompany.com
+        extends:
+            file: base.yaml
+            service: peer-base
+        environment:
+            -   CORE_PEER_LOCALMSPID=InsuranceCompanyMSP
+            -   CORE_PEER_ID=peer1.insurancecompany.com
+            -   CORE_PEER_ADDRESS=peer1.insurancecompany.com:10051
+            -   CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+            -   CORE_PEER_CHAINCODEADDRESS=peer1.insurancecompany.com:10052
+            -   CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+            -   CORE_PEER_GOSSIP_BOOTSTRAP=peer1.insurancecompany.com:9051
+            -   CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.insurancecompany.com:10051
+            -   CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb4:5984
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
+            -   CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
+        depends_on:
+            -   couchdb4
+        ports:
+            -   10051:10051
+        volumes:
+            -   ./channel/crypto-config/peerOrganizations/insurancecompany.com/peers/peer1.insurancecompany.com/msp:/etc/hyperledger/crypto/peer/msp    
+            -   ./channel/crypto-config/peerOrganizations/insurancecompany.com/peers/peer1.insurancecompany.com/tls:/etc/hyperledger/crypto/peer/tls
+            -   ./channel/:/etc/hyperledger/channel/
+            -   /var/vikas/car-lifecycle/peer1-dealer:/var/hyperledger/production
+        networks:
+            -   test
+
+
+        
+
+   
+
+
+        
