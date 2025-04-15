@@ -6,6 +6,8 @@ Procedure:
 run: docker-compose up -d
 2. Implement SmartContract by running deploy-chaincode.sh
 run: the script has functions in the sequence of how they should be invoked.
+3. The SmartContract implemented in the chaincode can be found at:
+artifacts/src/github.com/emr/go/emr.go 
 
 
  ├── artifacts
